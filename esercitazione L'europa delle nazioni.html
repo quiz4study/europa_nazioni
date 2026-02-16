@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Restaurazione e Moti dell'Ottocento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .option-card { transition: all 0.2s ease; }
+        .option-card:hover { transform: translateY(-2px); }
+        .review-card { border-left-width: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden p-8">
+        <!-- Header -->
+        <div id="quiz-header" class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <span id="progress-text" class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Domanda 1 di 12</span>
+                <div class="h-2 w-32 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-500" style="width: 8.33%"></div>
+                </div>
+            </div>
+            <h2 id="question-text" class="text-2xl font-bold text-slate-800 leading-tight">Caricamento domanda...</h2>
+        </div>
+
+        <!-- Options -->
+        <div id="options-container" class="space-y-4">
+            <!-- Le opzioni verranno inserite qui -->
+        </div>
+
+        <!-- Hint Section -->
+        <div id="hint-container" class="mt-6 text-center">
+            <button id="hint-toggle-btn" class="text-sm text-indigo-500 hover:text-indigo-700 font-medium flex items-center justify-center mx-auto transition-opacity">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Hai bisogno di un suggerimento?
+            </button>
+            <p id="hint-text" class="mt-2 text-sm italic text-slate-500 hidden"></p>
+        </div>
+
+        <!-- Feedback Section (Hidden by default) -->
+        <div id="feedback" class="mt-8 p-4 rounded-xl hidden border-l-4">
+            <p id="feedback-text" class="text-sm font-medium mb-4"></p>
+            <button id="next-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                Prossima Domanda
+            </button>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result-screen" class="hidden py-4">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">📊</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Quiz Completato!</h2>
+                <p class="text-slate-600">Hai risposto correttamente a <span id="final-score" class="font-bold text-indigo-600">0</span> domande su 12.</p>
+            </div>
+            
+            <div id="review-section" class="mb-8">
+                <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                    Riepilogo errori e correzioni:
+                </h3>
+                <div id="mistakes-list" class="space-y-4 max-h-96 overflow-y-auto pr-2 text-left">
+                    <!-- Errori qui -->
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8 text-center">
+                <p class="text-indigo-900 font-medium mb-4 italic text-sm">
+                    Ti consigliamo di ripassare gli argomenti delle domande sbagliate prima di ripetere la prova per consolidare la tua preparazione.
+                </p>
+                <button onclick="location.reload()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg transition-all shadow-lg">
+                    Ripeti la prova
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "Quale fu l'obiettivo principale del Congresso di Vienna (1814-1815)?",
+                options: [
+                    { text: "Restaurare il vecchio sistema politico precedente alla Rivoluzione francese.", correct: true, rationale: "Le potenze vincitrici volevano riportare l'Europa all'ordine tradizionale, periodo noto come Restaurazione." },
+                    { text: "Diffondere le idee di libertà e uguaglianza in tutta Europa.", correct: false, rationale: "Questo era l'obiettivo dei rivoluzionari, che il Congresso voleva invece combattere." },
+                    { text: "Sostenere l'ascesa della borghesia industriale al potere.", correct: false, rationale: "Il Congresso privilegiava l'aristocrazia e il clero." }
+                ],
+                hint: "Pensa al significato letterale della parola 'Restaurazione'."
+            },
+            {
+                question: "Quale principio stabiliva che i confini europei dovessero essere ridisegnati per bilanciare le forze tra le grandi potenze?",
+                options: [
+                    { text: "Principio di Equilibrio", correct: true, rationale: "Ideato per garantire una pace duratura impedendo che uno Stato diventasse troppo forte." },
+                    { text: "Principio di Legittimità", correct: false, rationale: "Riguardava il diritto dei sovrani a tornare sul trono." },
+                    { text: "Principio di Fratellanza", correct: false, rationale: "Questo era un ideale rivoluzionario." }
+                ],
+                hint: "Immagina una bilancia che non deve pendere troppo da un lato."
+            },
+            {
+                question: "Sostenevano il ritorno all'Antico regime reagendo alle novità dell'Illuminismo e della Rivoluzione francese. Chi sono?",
+                options: [
+                    { text: "Reazionari", correct: true, rationale: "Rifiutavano ogni cambiamento desiderando un ritorno totale all'assolutismo." },
+                    { text: "Conservatori", correct: false, rationale: "I conservatori erano più moderati rispetto ai reazionari." },
+                    { text: "Progressisti", correct: false, rationale: "Volevano l'evoluzione della società, l'opposto dei reazionari." }
+                ],
+                hint: "Vogliono 'reagire' ai cambiamenti per cancellarli."
+            },
+            {
+                question: "Miravano alla libertà individuale, a uno Stato con poteri limitati da una Costituzione e al suffragio censitario. Qual è questa ideologia?",
+                options: [
+                    { text: "Liberalismo", correct: true, rationale: "Il liberalismo ottocentesco era elitario: voto solo per chi aveva ricchezza (censo)." },
+                    { text: "Democrazia", correct: false, rationale: "I democratici chiedevano il voto per tutti i cittadini (universale)." },
+                    { text: "Comunismo", correct: false, rationale: "Punta all'abolizione della proprietà privata." }
+                ],
+                hint: "La parola chiave è 'Libertà', ma limitata a chi possiede un patrimonio."
+            },
+            {
+                question: "Volevano conservare i valori della tradizione politica e sociale, ma in modo più moderato rispetto ai reazionari. Chi sono?",
+                options: [
+                    { text: "Conservatori", correct: true, rationale: "Accettavano alcuni cambiamenti pur di mantenere l'ordine e la stabilità." },
+                    { text: "Democratici", correct: false, rationale: "Volevano riforme radicali." },
+                    { text: "Anarchici", correct: false, rationale: "Volevano distruggere ogni istituzione tradizionale." }
+                ],
+                hint: "Il loro obiettivo è 'mantenere' le fondamenta del sistema esistente."
+            },
+            {
+                question: "Promuovevano l'uguaglianza politica, il suffragio universale e l'istruzione garantita dallo Stato per tutti. Qual è questa corrente?",
+                options: [
+                    { text: "Democrazia", correct: true, rationale: "Puntavano sulla sovranità popolare totale e sull'istruzione pubblica." },
+                    { text: "Liberalismo", correct: false, rationale: "Preferivano lo Stato minimo e il voto limitato agli abbienti." },
+                    { text: "Aristocrazia", correct: false, rationale: "Si basa sul privilegio di sangue." }
+                ],
+                hint: "Dal greco 'demos' (popolo) e 'kratos' (potere)."
+            },
+            {
+                question: "Rivendicavano la libertà e l'indipendenza per comunità unite da lingua, religione e storia. Come vengono chiamati?",
+                options: [
+                    { text: "Patrioti", correct: true, rationale: "Lottavano per il riconoscimento della nazione come entità sovrana." },
+                    { text: "Socialisti", correct: false, rationale: "Davano priorità alla classe sociale rispetto alla nazione." },
+                    { text: "Legittimisti", correct: false, rationale: "Sostenevano i vecchi sovrani contro i desideri di indipendenza." }
+                ],
+                hint: "Amano la propria 'Patria'."
+            },
+            {
+                question: "Proponevano una società basata sulla giustizia sociale, la solidarietà tra lavoratori e la ridistribuzione della ricchezza. Di chi parliamo?",
+                options: [
+                    { text: "Socialisti", correct: true, rationale: "Il socialismo emerge come critica alla povertà causata dall'industrializzazione." },
+                    { text: "Liberali", correct: false, rationale: "Credevano nel libero mercato senza ridistribuzione." },
+                    { text: "Reazionari", correct: false, rationale: "Volevano tornare alla società feudale." }
+                ],
+                hint: "Mettevano al centro la 'questione sociale'."
+            },
+            {
+                question: "Quale fu una delle cause principali dell'indipendenza dell'America Latina tra il 1810 e il 1830?",
+                options: [
+                    { text: "Il declino militare e commerciale di Spagna e Portogallo.", correct: true, rationale: "Le guerre napoleoniche indebolirono il controllo europeo sulle colonie." },
+                    { text: "L'intervento dell'Impero Ottomano.", correct: false, rationale: "Non fu coinvolto nelle vicende americane." },
+                    { text: "L'espansione della Russia in Sud America.", correct: false, rationale: "La Russia si opponeva ai movimenti indipendentisti." }
+                ],
+                hint: "Pensa alla debolezza delle nazioni europee che possedevano quelle colonie."
+            },
+            {
+                question: "Chi erano i 'Caudillos' nel contesto latino-americano post-indipendenza?",
+                options: [
+                    { text: "Capi militari carismatici che presero il potere, spesso con regimi autoritari.", correct: true, rationale: "L'instabilità favorì l'emergere di questi leader forti." },
+                    { text: "Diplomatici europei.", correct: false, rationale: "Erano leader locali emersi dalle guerre." },
+                    { text: "Intellettuali unitari.", correct: false, rationale: "Rappresentavano spesso interessi regionali e militari." }
+                ],
+                hint: "Il termine indica leader di origine militare."
+            },
+            {
+                question: "Quale fu la caratteristica principale dei moti rivoluzionari del 1820-1821 in Europa?",
+                options: [
+                    { text: "Organizzati da società segrete (Carboneria) e coinvolsero i militari.", correct: true, rationale: "L'opposizione doveva agire in segretezza per sfuggire alla repressione." },
+                    { text: "Partecipazione spontanea dei contadini.", correct: false, rationale: "Le masse rurali rimasero isolate dai moti liberali." },
+                    { text: "Caduta immediata di tutti i sovrani assoluti.", correct: false, rationale: "Fallirono quasi tutti per l'intervento della Santa Alleanza." }
+                ],
+                hint: "Pensa a riunioni nascoste e codici segreti come quelli dei carbonai."
+            },
+            {
+                question: "Cosa accadde in Francia durante la 'Rivoluzione di Luglio' del 1830?",
+                options: [
+                    { text: "Insorgenza contro Carlo X e ascesa di Luigi Filippo d'Orléans.", correct: true, rationale: "Nacque una monarchia più liberale e borghese." },
+                    { text: "Restaurazione assoluta dei Borboni.", correct: false, rationale: "La rivoluzione nacque proprio per impedire l'assolutismo di Carlo X." },
+                    { text: "La Francia divenne colonia britannica.", correct: false, rationale: "Si trattò di un cambio di regime interno." }
+                ],
+                hint: "Portò sul trono quello che fu definito il 're borghese'."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+        let userMistakes = [];
+        let currentShuffledOptions = [];
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        const feedback = document.getElementById('feedback');
+        const feedbackText = document.getElementById('feedback-text');
+        const nextBtn = document.getElementById('next-btn');
+        const hintBtn = document.getElementById('hint-toggle-btn');
+        const hintText = document.getElementById('hint-text');
+        const hintContainer = document.getElementById('hint-container');
+
+        // Funzione di rimescolamento (In-place Fisher-Yates)
+        function shuffleOptions(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function loadQuestion() {
+            answered = false;
+            feedback.classList.add('hidden');
+            hintText.classList.add('hidden');
+            hintContainer.classList.remove('hidden');
+            
+            const data = quizData[currentQuestion];
+            
+            // Ogni volta che carichiamo, generiamo un nuovo ordine
+            currentShuffledOptions = shuffleOptions(data.options);
+            
+            questionText.innerText = data.question;
+            progressText.innerText = `Domanda ${currentQuestion + 1} di ${quizData.length}`;
+            progressBar.style.width = `${((currentQuestion + 1) / quizData.length) * 100}%`;
+            
+            hintText.innerText = data.hint;
+            
+            optionsContainer.innerHTML = '';
+            currentShuffledOptions.forEach((opt, index) => {
+                const button = document.createElement('button');
+                button.className = "option-card w-full text-left p-4 rounded-xl border-2 border-slate-100 bg-white hover:border-indigo-300 hover:bg-indigo-50 font-medium text-slate-700 outline-none";
+                button.innerText = opt.text;
+                button.onclick = () => selectOption(index);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        hintBtn.onclick = () => hintText.classList.toggle('hidden');
+
+        function selectOption(index) {
+            if (answered) return;
+            answered = true;
+            
+            hintContainer.classList.add('hidden');
+            const data = quizData[currentQuestion];
+            const selectedOpt = currentShuffledOptions[index];
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            if (selectedOpt.correct) {
+                score++;
+                buttons[index].classList.replace('border-slate-100', 'border-green-500');
+                buttons[index].classList.add('bg-green-50', 'text-green-900');
+                feedback.className = "mt-8 p-4 rounded-xl border-l-4 bg-green-50 border-green-500";
+                feedbackText.innerHTML = `<span class="text-green-700 font-bold text-lg">Corretto!</span><br><span class="text-green-800">${selectedOpt.rationale}</span>`;
+            } else {
+                const correctOpt = data.options.find(o => o.correct);
+                userMistakes.push({
+                    question: data.question,
+                    userAnswer: selectedOpt.text,
+                    correctAnswer: correctOpt.text,
+                    rationale: correctOpt.rationale
+                });
+                
+                buttons[index].classList.replace('border-slate-100', 'border-red-500');
+                buttons[index].classList.add('bg-red-50', 'text-red-900');
+                feedback.className = "mt-8 p-4 rounded-xl border-l-4 bg-red-50 border-red-500";
+                feedbackText.innerHTML = `<span class="text-red-700 font-bold text-lg">Sbagliato.</span><br><span class="text-red-800">${selectedOpt.rationale}</span>`;
+                
+                // Mostra anche quale era quella corretta evidenziandola
+                currentShuffledOptions.forEach((opt, i) => {
+                    if(opt.correct) buttons[i].classList.replace('border-slate-100', 'border-green-200');
+                });
+            }
+
+            buttons.forEach(btn => btn.disabled = true);
+            feedback.classList.remove('hidden');
+        }
+
+        nextBtn.onclick = () => {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            document.getElementById('quiz-header').classList.add('hidden');
+            optionsContainer.classList.add('hidden');
+            feedback.classList.add('hidden');
+            hintContainer.classList.add('hidden');
+            
+            const resultScreen = document.getElementById('result-screen');
+            const mistakesList = document.getElementById('mistakes-list');
+            
+            resultScreen.classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+
+            if (userMistakes.length === 0) {
+                mistakesList.innerHTML = `<div class="p-4 bg-green-50 text-green-700 rounded-lg text-center font-bold">Nessun errore commesso! Ottimo lavoro.</div>`;
+            } else {
+                mistakesList.innerHTML = '';
+                userMistakes.forEach((m, i) => {
+                    const div = document.createElement('div');
+                    div.className = "review-card bg-slate-50 p-4 rounded-lg border-l-amber-400 border border-slate-200 shadow-sm";
+                    div.innerHTML = `
+                        <p class="text-slate-800 font-bold mb-2 text-sm">${i+1}. ${m.question}</p>
+                        <p class="text-red-600 text-xs mb-1"><strong>Tua scelta:</strong> ${m.userAnswer}</p>
+                        <p class="text-green-700 text-xs mb-2"><strong>Corretta:</strong> ${m.correctAnswer}</p>
+                        <div class="text-slate-600 text-[11px] bg-white p-2 rounded border border-slate-100 italic">
+                            ${m.rationale}
+                        </div>
+                    `;
+                    mistakesList.appendChild(div);
+                });
+            }
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
